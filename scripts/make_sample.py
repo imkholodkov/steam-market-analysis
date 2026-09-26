@@ -18,7 +18,7 @@ COLUMNS = [
     "average_playtime_forever",
 ]
 SAMPLE_SIZE = 10_000
-SEED = 42
+SEED = 43
 
 
 def main(src: Path, dst: Path) -> None:
