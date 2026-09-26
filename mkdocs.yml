@@ -1,6 +1,6 @@
 site_name: Steam Market Analysis
 site_description: Результаты исследований и лабораторных работ по анализу рынка игр в Steam
-site_url: https://imkholodkov.github.io/steam-market-analysis/
+site_url: !ENV [SITE_URL, 'https://imkholodkov.github.io/steam-market-analysis/']
 repo_url: https://github.com/imkholodkov/steam-market-analysis
 docs_dir: docs
 use_directory_urls: true

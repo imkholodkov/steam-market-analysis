@@ -1,0 +1,121 @@
+# Сборка сайта и публикация на GitHub Pages и SourceCraft Sites.
+# Ветки, кроме main, и pull request — только сборка (проверка --strict), без деплоя.
+name: Deploy site
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+# Не даём двум деплоям идти одновременно; незавершённая сборка старого коммита отменяется.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.12.17"
+          enable-cache: true # кэш пакетов uv между запусками
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --group docs --frozen # только зафиксированные в uv.lock версии
+
+      # Кэш результатов расчёта: ключ меняется только при изменении данных или скрипта,
+      # иначе scripts/build_results.py находит готовые файлы и пересчёт пропускается.
+      - name: Restore results cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .cache
+            docs/p3/generated
+          key: results-${{ hashFiles('datasets/**', 'scripts/build_results.py') }}
+
+      - name: Compute results
+        run: make results
+
+      # Два варианта сборки: у площадок разные адреса, от site_url зависят sitemap и canonical.
+      - name: Build for GitHub Pages
+        run: uv run mkdocs build --strict --site-dir site-github
+        env:
+          SITE_URL: https://imkholodkov.github.io/steam-market-analysis/
+
+      - name: Build for SourceCraft Sites
+        run: uv run mkdocs build --strict --site-dir site-sourcecraft
+        env:
+          SITE_URL: https://imkholodkov.sourcecraft.site/steam-market-analysis/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site-github
+
+      - name: Upload SourceCraft artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-sourcecraft
+          path: site-sourcecraft
+
+  deploy-github-pages:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write # публикация на Pages
+      id-token: write # OIDC-токен для deploy-pages, секрет не нужен
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Healthcheck
+        run: ./scripts/healthcheck.sh "${{ steps.deployment.outputs.page_url }}p3/"
+
+  deploy-sourcecraft:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: site-sourcecraft
+          path: out
+
+      # SourceCraft Sites публикует сайт из репозитория на SourceCraft.
+      # Собранный сайт кладётся в main этого репозитория отдельным коммитом;
+      # история сохраняется, поэтому откат — git revert последнего коммита там.
+      - name: Push to SourceCraft
+        env:
+          SOURCECRAFT_TOKEN: ${{ secrets.SOURCECRAFT_TOKEN }} # из хранилища секретов, в логе маскируется
+        run: |
+          git clone "https://anyname:${SOURCECRAFT_TOKEN}@git.sourcecraft.dev/imkholodkov/steam-market-analysis.git" sc
+          cd sc
+          git rm -rq --ignore-unmatch .
+          cp -r ../out/. .
+          mkdir -p .sourcecraft
+          printf 'site:\n  root: "."\n' > .sourcecraft/sites.yaml
+          git add -A
+          git -c user.name="github-actions" -c user.email="actions@github.com" \
+            commit -q -m "Deploy ${GITHUB_SHA::7}" || { echo "Нет изменений"; exit 0; }
+          git push -q origin HEAD:main
+
+      - name: Healthcheck
+        run: |
+          sleep 60 # SourceCraft публикует сайт своим CI-процессом, даём ему время
+          ./scripts/healthcheck.sh "https://imkholodkov.sourcecraft.site/steam-market-analysis/p3/"
