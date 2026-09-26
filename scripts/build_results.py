@@ -22,8 +22,14 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+LOCKFILE = ROOT / "uv.lock"
+MIN_REVIEWS = 10  # порог отзывов для доли положительных: у игр с 1–2 отзывами доля 0 % или 100 %
+
+
 def cache_key() -> str:
-    return sha256(DATASET)[:16] + "-" + sha256(Path(__file__))[:16]
+    # uv.lock в ключе: смена версий pandas/matplotlib тоже требует пересчёта
+    parts = (DATASET, Path(__file__), LOCKFILE)
+    return "-".join(sha256(p)[:12] for p in parts)
 
 
 def is_cached(key: str) -> bool:
@@ -31,6 +37,12 @@ def is_cached(key: str) -> bool:
         return False
     saved = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
     return saved.get("key") == key and all((OUT_DIR / name).exists() for name in OUTPUTS)
+
+
+def parse_genres(raw: str) -> list[str]:
+    # В датасете два формата: [{"id": "1", "description": "Action"}] и ["Action", "Indie"]
+    items = json.loads(raw) if isinstance(raw, str) and raw else []
+    return [i["description"] if isinstance(i, dict) else str(i) for i in items]
 
 
 def compute() -> None:
@@ -43,9 +55,9 @@ def compute() -> None:
 
     df = pd.read_csv(DATASET)
     df["year"] = pd.to_datetime(df["release_date"], errors="coerce").dt.year
-    df["genre"] = df["genres"].str.extract(r'"description": "([^"]+)"', expand=False)
+    df["genre"] = df["genres"].map(parse_genres)
     df["reviews"] = df["positive"] + df["negative"]
-    df["positive_share"] = df["positive"] / df["reviews"].where(df["reviews"] > 0)
+    df["positive_share"] = df["positive"] / df["reviews"].where(df["reviews"] >= MIN_REVIEWS)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -60,7 +72,9 @@ def compute() -> None:
     plt.close(fig)
 
     genres = (
-        df.dropna(subset=["genre"])
+        # игра с несколькими жанрами учитывается в каждом из них
+        df.explode("genre")
+        .dropna(subset=["genre"])
         .groupby("genre")
         .agg(
             games=("app_id", "size"),
@@ -79,7 +93,7 @@ def compute() -> None:
     plt.close(fig)
 
     rows = "\n".join(
-        f"| {g} | {r.games} | {r.median_price:.2f} | {r.free_share:.0%} | {r.positive_share:.0%} |"
+        f"| {g} | {int(r.games)} | {r.median_price:.2f} | {r.free_share:.0%} | {r.positive_share:.0%} |"
         for g, r in genres.iterrows()
     )
     summary = (
@@ -87,12 +101,13 @@ def compute() -> None:
         f"| Игр в выборке | {len(df)} |\n"
         f"| Медианная цена, $ | {df['price'].median():.2f} |\n"
         f"| Доля бесплатных | {(df['price'] == 0).mean():.1%} |\n"
-        f"| Медианная доля положительных отзывов | {df['positive_share'].median():.1%} |\n"
+        f"| Медианная доля положительных отзывов (игры от {MIN_REVIEWS} отзывов) | {df['positive_share'].median():.1%} |\n"
     )
     (OUT_DIR / "results.md").write_text(
         "## Сводка\n\n" + summary + "\n"
         "## Выход игр по годам\n\n![Выход игр по годам](generated/releases_by_year.png)\n\n"
-        "## Топ-10 жанров\n\n"
+        "## Топ-10 жанров\n\nИгра с несколькими жанрами учитывается в каждом из них. "
+        f"Доля положительных отзывов — по играм от {MIN_REVIEWS} отзывов.\n\n"
         "| Жанр | Игр | Медианная цена, $ | Бесплатных | Положительных отзывов |\n"
         "|---|---|---|---|---|\n" + rows + "\n\n"
         "![Медианная цена по жанрам](generated/price_by_genre.png)\n",
