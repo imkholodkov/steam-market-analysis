@@ -67,6 +67,7 @@ GitHub Pages переключён с публикации из ветки на G
 | без кэша | локально | 0,415 с | 0,77 с |
 | с кэшем | локально | 0,001 с | 0,32 с |
 | без кэша | GitHub Actions | 2,83 с | job `build` 15 с |
+| с кэшем | GitHub Actions | 0,002 с | job `build` 12 с |
 
 ## Отладка
 
@@ -75,7 +76,8 @@ GitHub Pages переключён с публикации из ветки на G
 | 1 | `Doc file 'p3/generated/results.md' contains a link 'generated/releases_by_year.png', but the target 'p3/generated/generated/releases_by_year.png' is not found` — `Aborted with 2 warnings in strict mode!` | MkDocs считает вставляемый фрагмент `results.md` отдельной страницей и проверяет ссылки относительно его каталога | в том же логе: `pages exist in the docs directory, but are not included in the "nav": p3/generated/results.md` | `exclude_docs: p3/generated/*.md` в `mkdocs.yml` |
 | 2 | pre-commit: `check for added large files...Failed` — `datasets/steam_sample.csv (1270 KB) exceeds 500 KB` | хук `check-added-large-files` с порогом по умолчанию 500 КБ | текст ошибки называет файл и порог | `args: [--maxkb=2048]` для хука |
 | 3 | pre-commit `check-yaml`: `could not determine a constructor for the tag '!ENV' in "mkdocs.yml", line 3` | хук разбирает YAML безопасным загрузчиком и не знает тег MkDocs `!ENV` | `mkdocs build` с тем же файлом проходит | `args: [--unsafe]` для `check-yaml` |
-| 4 | GitHub Actions: `Failed to restore: Cache service responded with 400`, `Failed to save: Our services aren't available right now` | временный сбой сервиса кэша GitHub | *в работе: повторный запуск* | — |
+| 4 | GitHub Actions, шаг `Install uv`: `Failed to restore: Cache service responded with 400`, `Failed to save: Our services aren't available right now` | сначала — временный сбой сервиса кэша; не подтвердилась: в том же запуске `actions/cache@v4` восстановил кэш результатов. Вторая гипотеза — `astral-sh/setup-uv@v3` обращается к отключённому старому API кэша | поднять `setup-uv` до v10.2.0 и перезапустить | после обновления: `uv cache saved with key: setup-uv-2-...`, ошибок 400 нет |
+| 5 | `Unable to resolve action astral-sh/setup-uv@v10, unable to find version v10` | у `setup-uv` нет плавающего мажорного тега `v10`, только точные версии | `gh api repos/astral-sh/setup-uv/releases/latest` → `v10.2.0` | закрепить `astral-sh/setup-uv@v10.2.0` |
 
 ## Вывод
 
