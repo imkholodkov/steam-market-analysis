@@ -28,6 +28,12 @@ dev = [
     "pytest-cov>=7.1.0",
     "ruff>=0.16.8",
 ]
+docs = [
+    "matplotlib>=3.11.2",
+    "mkdocs>=1.6,<2",
+    "mkdocs-material>=9.7.7",
+    "pandas>=3.0.6",
+]
 
 [tool.ruff]
 line-length = 100

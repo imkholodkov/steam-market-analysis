@@ -1,0 +1,31 @@
+site_name: Steam Market Analysis
+site_description: Результаты исследований и лабораторных работ по анализу рынка игр в Steam
+site_url: https://imkholodkov.github.io/steam-market-analysis/
+repo_url: https://github.com/imkholodkov/steam-market-analysis
+docs_dir: docs
+use_directory_urls: true
+# results.md вставляется в p3/index.md через snippets, отдельной страницей не публикуется
+exclude_docs: |
+  p3/generated/*.md
+
+theme:
+  name: material
+  language: ru
+
+hooks:
+  - hooks/build_info.py
+
+markdown_extensions:
+  - admonition
+  - tables
+  - pymdownx.snippets:
+      check_paths: true
+
+plugins:
+  - search:
+      lang: ru
+
+nav:
+  - Главная: index.md
+  - Лабораторная №1: lab1_report.md
+  - P3. Конвейер данных: p3/index.md
