@@ -20,8 +20,17 @@ markdown_extensions:
   - tables
   - pymdownx.snippets:
       check_paths: true
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  # SVG-вывод: формулы рисуются без веб-шрифтов, которые privacy не скачивает заранее
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js
 
 plugins:
+  # скачивает внешние шрифты и скрипты (Google Fonts, MathJax) при сборке и отдаёт их с сайта
+  - privacy
   - search:
       lang: ru
 
