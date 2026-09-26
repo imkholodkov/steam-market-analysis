@@ -1,9 +1,13 @@
-# Steam Market Analysis
+# Разработка на Python и инженерия данных
 
-Сайт с результатами исследований проекта
-[steam-market-analysis](https://github.com/imkholodkov/steam-market-analysis):
+Проект для выполнения лабораторных работ по предмету «Разработка на Python и инженерия данных».
+
+**Магистратура ИТМО. 1 курс. Холодков Иван.**
+
+Репозиторий: [steam-market-analysis](https://github.com/imkholodkov/steam-market-analysis) —
 анализ рынка игр в Steam по открытому датасету Kaggle.
 
-## Отчёты
+## Лабораторные работы
 
-- [Лабораторная №1: каркас проекта](lab1_report.md)
+- [Лабораторная №1](lab1_report.md)
+- [Лабораторная №2](lab2/index.md)

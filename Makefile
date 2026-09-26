@@ -10,4 +10,4 @@ serve: results
 	uv run mkdocs serve
 
 clean:
-	rm -rf site .cache docs/p3/generated
+	rm -rf site .cache docs/lab2/p3/generated

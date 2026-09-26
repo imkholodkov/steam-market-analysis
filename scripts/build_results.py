@@ -1,7 +1,7 @@
 """Расчёт результатов по выборке Steam и генерация страницы сайта.
 
 Читает datasets/steam_sample.csv, считает показатели рынка, сохраняет графики
-и Markdown-страницу в docs/p3/generated/. Пересчёт пропускается, если хеш
+и Markdown-страницу в docs/lab2/p3/generated/. Пересчёт пропускается, если хеш
 входных данных и этого скрипта совпадает с сохранённым в кэше.
 """
 
@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATASET = ROOT / "datasets" / "steam_sample.csv"
-OUT_DIR = ROOT / "docs" / "p3" / "generated"
+OUT_DIR = ROOT / "docs" / "lab2" / "p3" / "generated"
 CACHE_FILE = ROOT / ".cache" / "results.json"
 OUTPUTS = ["results.md", "releases_by_year.png", "price_by_genre.png"]
 

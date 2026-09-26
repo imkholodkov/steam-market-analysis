@@ -38,7 +38,7 @@ jobs:
         with:
           path: |
             .cache
-            docs/p3/generated
+            docs/lab2/p3/generated
           key: results-${{ hashFiles('datasets/**', 'scripts/build_results.py', 'uv.lock') }}
 
       - name: Compute results
@@ -85,7 +85,7 @@ jobs:
           sparse-checkout: scripts
 
       - name: Healthcheck
-        run: ./scripts/healthcheck.sh "${{ steps.deployment.outputs.page_url }}p3/"
+        run: ./scripts/healthcheck.sh "${{ steps.deployment.outputs.page_url }}lab2/p3/"
 
   deploy-sourcecraft:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
@@ -124,4 +124,4 @@ jobs:
       - name: Healthcheck
         run: |
           sleep 60 # SourceCraft публикует сайт своим CI-процессом, даём ему время
-          ./scripts/healthcheck.sh "https://imkholodkov.sourcecraft.site/steam-market-analysis/p3/"
+          ./scripts/healthcheck.sh "https://imkholodkov.sourcecraft.site/steam-market-analysis/lab2/p3/"
