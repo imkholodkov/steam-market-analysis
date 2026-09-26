@@ -19,12 +19,17 @@ COLUMNS = [
 ]
 SAMPLE_SIZE = 10_000
 SEED = 43
+MIN_YEAR = 2020  # только игры, выпущенные с этого года
 
 
 def main(src: Path, dst: Path) -> None:
     csv.field_size_limit(sys.maxsize)
     with src.open(encoding="utf-8", newline="") as f:
-        rows = [{c: r[c] for c in COLUMNS} for r in csv.DictReader(f)]
+        rows = [
+            {c: r[c] for c in COLUMNS}
+            for r in csv.DictReader(f)
+            if r["release_date"][:4].isdigit() and int(r["release_date"][:4]) >= MIN_YEAR
+        ]
     rows.sort(key=lambda r: int(r["app_id"]))
     sample = random.Random(SEED).sample(rows, SAMPLE_SIZE)
     sample.sort(key=lambda r: int(r["app_id"]))
