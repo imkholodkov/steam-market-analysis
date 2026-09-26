@@ -79,6 +79,9 @@ GitHub Pages переключён с публикации из ветки на G
 | 4 | GitHub Actions, шаг `Install uv`: `Failed to restore: Cache service responded with 400`, `Failed to save: Our services aren't available right now` | сначала — временный сбой сервиса кэша; не подтвердилась: в том же запуске `actions/cache@v4` восстановил кэш результатов. Вторая гипотеза — `astral-sh/setup-uv@v3` обращается к отключённому старому API кэша | поднять `setup-uv` до v10.2.0 и перезапустить | после обновления: `uv cache saved with key: setup-uv-2-...`, ошибок 400 нет |
 | 5 | `Unable to resolve action astral-sh/setup-uv@v10, unable to find version v10` | у `setup-uv` нет плавающего мажорного тега `v10`, только точные версии | `gh api repos/astral-sh/setup-uv/releases/latest` → `v10.2.0` | закрепить `astral-sh/setup-uv@v10.2.0` |
 | 6 | Ошибки не было, результат неверный: в таблице жанров Indie — 1836 игр из 10 000, у 7467 игр жанр пустой | регулярное выражение ищет только формат `{"description": "Action"}`, а в датасете встречается и второй формат | `genres.isna()` — 0 пустых значений; в случайных строках есть `["Action", "Adventure", "Indie", "RPG"]` | разбор через `json.loads` с поддержкой обоих форматов; Indie — 6704 игры |
+| 7 | `deploy-sourcecraft`: `fatal: could not read Username for 'https://git.sourcecraft.dev': No such device or address` | SourceCraft не принимает токен в заголовке `http.extraheader` (или токен недействителен после смены идентификатора организации) | вернуть документированный способ — токен в URL клонирования | *проверяется* |
+
+![Проваленный деплой на SourceCraft](../assets/screens/run-main-sourcecraft-fail.webp)
 
 ## Вывод
 

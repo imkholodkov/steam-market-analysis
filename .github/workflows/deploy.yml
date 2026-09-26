@@ -108,11 +108,9 @@ jobs:
         env:
           SOURCECRAFT_TOKEN: ${{ secrets.SOURCECRAFT_TOKEN }} # из хранилища секретов, в логе маскируется
         run: |
-          # Токен передаётся заголовком, а не в URL: так он не попадает в .git/config
-          auth=$(printf 'anyname:%s' "$SOURCECRAFT_TOKEN" | base64 -w0)
-          echo "::add-mask::$auth"
-          git config --global http.https://git.sourcecraft.dev/.extraheader "Authorization: Basic $auth"
-          git clone https://git.sourcecraft.dev/imkholodkov/steam-market-analysis.git sc
+          # Способ из документации SourceCraft: токен в URL с произвольным логином.
+          # Авторизация заголовком http.extraheader сервером не принята (см. «Отладка», ошибка 7).
+          git clone "https://anyname:${SOURCECRAFT_TOKEN}@git.sourcecraft.dev/imkholodkov/steam-market-analysis.git" sc
           cd sc
           git rm -rq --ignore-unmatch .
           cp -r ../out/. .
