@@ -1,6 +1,7 @@
 site_name: Разработка на Python и инженерия данных
 site_description: Результаты исследований и лабораторных работ по анализу рынка игр в Steam
 site_url: !ENV [SITE_URL, 'https://imkholodkov.github.io/steam-market-analysis/']
+copyright: Холодков Иван, 2026 · код — MIT, тексты — CC BY 4.0 · частичная реализация с помощью ИИ-ассистента (Claude)
 repo_url: https://github.com/imkholodkov/steam-market-analysis
 docs_dir: docs
 use_directory_urls: true

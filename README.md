@@ -70,3 +70,11 @@ src/steam_market_analysis/
 └── api/                  # заготовка: внешний API
 tests/                    # тесты pytest
 ```
+
+## Лицензии
+
+- Код — MIT, см. [`LICENSE`](LICENSE).
+- Содержимое сайта в `docs/` — CC BY 4.0, см. [`LICENSE-CONTENT`](LICENSE-CONTENT).
+- Выборка в `datasets/` — MIT автора исходного датасета, см. [`datasets/README.md`](datasets/README.md).
+
+Исследование и проект подготовлены с помощью ИИ-ассистента (Claude), не полная генерация, а ассистентная помощь.
