@@ -45,7 +45,7 @@ def parse_genres(raw: str) -> list[str]:
     return [i["description"] if isinstance(i, dict) else str(i) for i in items]
 
 
-def compute() -> None:
+def compute(version: str) -> None:
     # Тяжёлые импорты — только при реальном пересчёте, чтобы попадание в кэш было быстрым.
     import matplotlib
 
@@ -103,14 +103,15 @@ def compute() -> None:
         f"| Доля бесплатных | {(df['price'] == 0).mean():.1%} |\n"
         f"| Медианная доля положительных отзывов (игры от {MIN_REVIEWS} отзывов) | {df['positive_share'].median():.1%} |\n"
     )
+    # ?v= в адресе картинок: при новых данных адрес меняется и браузер не берёт график из кэша
     (OUT_DIR / "results.md").write_text(
         "## Сводка\n\n" + summary + "\n"
-        "## Выход игр по годам\n\n![Выход игр по годам](generated/releases_by_year.png)\n\n"
+        f"## Выход игр по годам\n\n![Выход игр по годам](generated/releases_by_year.png?v={version})\n\n"
         "## Топ-10 жанров\n\nИгра с несколькими жанрами учитывается в каждом из них. "
         f"Доля положительных отзывов — по играм от {MIN_REVIEWS} отзывов.\n\n"
         "| Жанр | Игр | Медианная цена, $ | Бесплатных | Положительных отзывов |\n"
         "|---|---|---|---|---|\n" + rows + "\n\n"
-        "![Медианная цена по жанрам](generated/price_by_genre.png)\n",
+        f"![Медианная цена по жанрам](generated/price_by_genre.png?v={version})\n",
         encoding="utf-8",
     )
 
@@ -122,7 +123,7 @@ def main() -> int:
     if not force and is_cached(key):
         print(f"cache hit key={key} elapsed={time.perf_counter() - start:.3f}s")
         return 0
-    compute()
+    compute(version=key)
     CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
     CACHE_FILE.write_text(json.dumps({"key": key}), encoding="utf-8")
     print(f"recomputed key={key} elapsed={time.perf_counter() - start:.3f}s")
